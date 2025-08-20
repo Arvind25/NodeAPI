@@ -1,34 +1,30 @@
 {
-  "name": "genericapi",
+  "name": "api-server",
   "version": "1.0.0",
-  "description": "generic api to maintain general data.",
   "main": "index.js",
   "scripts": {
+    "start": "node dist/index.js",
+    "dev": "ts-node index.ts",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "arvind"
-  },
-  "keywords": [
-    "API",
-    "Express",
-    "Mongo"
-  ],
-  "author": "Arvind Mehta",
+  "keywords": [],
+  "author": "",
   "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.2.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
   "dependencies": {
-    "auto-bind": "^1.1.0",
-    "body-parser": "^1.17.1",
-    "express": "^4.15.2",
-    "express-validator": "^4.3.0",
-    "http-status-codes": "^1.3.0",
-    "jsonwebtoken": "^8.1.0",
-    "mongoose": "^4.9.5",
-    "morgan": "^1.8.1",
-    "passport": "^0.4.0",
-    "passport-jwt": "^2.2.1",
-    "passport-local": "^1.0.0",
-    "passport-strategy": "^1.0.0"
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "mongoose": "^8.17.1"
   }
 }
