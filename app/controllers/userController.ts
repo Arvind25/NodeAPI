@@ -3,6 +3,8 @@ import bcrypt from "bcrypt" ;
 import User from '../models/userModel';
 import Expert from '../models/expertModel';
 import Organization from '../models/organizationModel';
+import {ResponseManager} from '../manager/responseManager';
+
 
 /**
  * This endpoint allows you to create a new user in the system. 
@@ -23,63 +25,56 @@ import Organization from '../models/organizationModel';
  * @returns 
  */
 const createUser = async (req:Request,res:Response) => {
-    try {
-        console.log("XXXX CREATE user: ");
-        const { organizationCode, email, ...userData } = req.body;
-        const normalizedEmail = email.toLowerCase();
-    
-        const existingUser = await User.findOne({ email: normalizedEmail });
-        const existingExpert = await Expert.findOne({ email: normalizedEmail });
-    
-        if (existingUser || existingExpert) {
-          return res.status(400).json({ error: "Email already exists" });
-        }
-        let organization = null;
-        let userType = "self";
-    
-        if (organizationCode) {
-          organization = await Organization.findOne({
-            loginCode: organizationCode,
-          });
-    
-          if (!organization) {
-            return res.status(400).json({ error: "Invalid organization code" });
-          }
-          if (organization.organizationType.toLowerCase() === "educational") {
-            userType = "student";
-          } else if (organization.organizationType.toLowerCase() === "corporate") {
-            userType = "employee";
-          }
-        }
-        const user = new User({
-          ...userData,
-          email,
-          organizationCode: organizationCode,
-          organization: organization ? organization._id : null,
-          userType: userData.userType && userData.userType.trim() !== "" ? userData.userType : userType,
-          dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth) : null
+  try {
+      console.log("XXXX CREATE user: ");
+      const { organizationCode, email, ...userData } = req.body;
+      const normalizedEmail = email.toLowerCase();
+      const existingUser = await User.findOne({ email: normalizedEmail });
+      const existingExpert = await Expert.findOne({ email: normalizedEmail });
+      if (existingUser || existingExpert) {
+        return res.status(400).json({ error: "Email already exists" });
+      }
+      let organization = null;
+      let userType = "self";
+      if (organizationCode) {
+        organization = await Organization.findOne({
+          loginCode: organizationCode,
         });
-    
-    
-        if (user.password) {
-          const salt = await bcrypt.genSalt(10);
-          user.password = await bcrypt.hash(user.password, salt);
+        if (!organization) {
+          return res.status(400).json({ error: "Invalid organization code" });
         }
-    
-        await user.save();
-    
-        if (organization) {
-          organization.users.push(user._id);
-          const remainingUsers = parseInt(organization.remainingUsers || "0", 10);
-          organization.remainingUsers = (remainingUsers - 1).toString();
-          await organization.save();
+        if (organization.organizationType.toLowerCase() === "educational") {
+          userType = "student";
+        } else if (organization.organizationType.toLowerCase() === "corporate") {
+          userType = "employee";
         }
-    
-        res.status(201).json(user);
-    } catch (error:any) {
+      }
+      const user = new User({
+        ...userData,
+        email,
+        organizationCode: organizationCode,
+        organization: organization ? organization._id : null,
+        userType: userData.userType && userData.userType.trim() !== "" ? userData.userType : userType,
+        dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth) : null
+      });
+      /*
+      if (user.password) {
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+      }*/
+      await user.save();
+      if (organization) {
+        organization.users.push(user._id);
+        const remainingUsers = parseInt(organization.remainingUsers || "0", 10);
+        organization.remainingUsers = (remainingUsers - 1).toString();
+        await organization.save();
+      }
+      ResponseManager.responseWithSuccess(res,user,"User created successfully.");
+      //res.status(201).json(user);
+  } catch (error:any) {
     console.error("Detailed validation errors:", error.errors);
     res.status(400).json({ error: error.message });
-    }
+  }
 }
 /**
  * This endpoint retrieves a list of users from the server. 
@@ -90,14 +85,15 @@ const createUser = async (req:Request,res:Response) => {
  * @returns 
  */
 const getUser = async (req:Request,res:Response) => {
-    console.log(" <<<<<<<<< getUser <>>>>>>>>>", req.params);
+    console.log(" <<<<<<<<<>> getUser <1111>>>>>>>>>", req.params);
     const { id } = req.params;
     try {
         const user = await User.findById(id);
         if (!user) {
             return res.status(404).send();
         }
-        res.send(user);
+        ResponseManager.responseWithSuccess(res,user);
+        //res.send(user);
     } catch (error) {
         res.status(500).send(error);
     }
@@ -122,7 +118,7 @@ const getAllUsers = async (req:Request,res:Response) => {
           .skip(skip);
     const totalCount = await User.countDocuments(query);
     console.log("XXX GetUSER, ",users.length );
-    res.status(200).send(users);
+    ResponseManager.responseWithSuccess(res,users);
 }
 
 /**
@@ -149,7 +145,8 @@ const updateUser = async (req:Request,res:Response) => {
         if (!user) {
             return res.status(404).send();
         }
-        res.send(user);
+        ResponseManager.responseWithSuccess(res,user,"User updates successfully");
+        //res.send(user);
     } catch (error) {
         res.status(400).send(error);
     }
@@ -167,7 +164,8 @@ const deleteUser = async (req:Request,res:Response) => {
     if (!user) {
         return res.status(404).send("User Not found");
     }
-    res.send(user);
+    ResponseManager.responseWithSuccess(res,{},"User deleted successfully");
+    //res.send(user);
     } catch (error) {
         res.status(500).send(error);
     }
